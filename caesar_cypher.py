@@ -12,8 +12,8 @@ class Caesar:
                 self.answer += ' '
                 continue
             pos = self.key + self.symbols.index(self.message[i])
-            if pos > len(self.symbols):
-                while pos > len(self.symbols):
+            if pos >= len(self.symbols):
+                while pos >= len(self.symbols):
                     pos -= len(self.symbols)
             self.answer += self.symbols[pos]
 
@@ -23,10 +23,7 @@ class Caesar:
                 self.encrypted += ' '
                 continue
             pos = self.symbols.index(self.answer[i]) - self.key
-            if pos < 0:
-                pos *= -1
             self.encrypted += self.symbols[pos]
-
 
     def choose(self, choose):
         if choose in ('encrypt', 'e'):
