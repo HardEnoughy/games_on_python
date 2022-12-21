@@ -96,9 +96,10 @@ class Reversegam:
         return False
 
     def is_end(self):
-        for line in self.board:
-            if ' ' in line:
-                return False
+        for i in range(len(self.board)):
+            for j in range(len(self.board)):
+                if self.board[i][j] == ' ':
+                    return False
         return True
 
     def who_won(self):
