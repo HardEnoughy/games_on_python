@@ -17,12 +17,12 @@ class Reversegam:
         self.board[4][4] = 'X'
 
     def draw_map(self):
-        print('  12345678')
+        print('  01234567')
         print('+----------+')
         for line in self.board:
             print('|', ''.join(line), '|')
         print('+----------+')
-        print('  12345678')
+        print('  01234567')
 
     def place_on_map(self, pos, to_place):
         line, column = pos
@@ -30,6 +30,7 @@ class Reversegam:
 
     def scoring(self, pos, side, opposite_side):
         line, column = pos
+        flag = False
         if not self.is_valid_move(pos):
             return False
         for i in self.directions:
@@ -43,10 +44,11 @@ class Reversegam:
                             self.player_score += 1
                         else:
                             self.computer_score += 1
-                        return None
+                        flag = True
                 except:
                     continue
-        self.place_on_map(pos, side)
+        if not flag:
+            self.place_on_map(pos, side)
 
     def most_score(self, pos):
         score = 0
@@ -79,13 +81,13 @@ class Reversegam:
     def is_valid_move(self, pos):
         line, column = pos
         return self.board[line][column] == ' '
-    
+
     def take_corner(self):
         pass
 
     def decide(self):
         pass
-    
+
     def is_end(self):
         for line in self.board:
             if ' ' in line:
