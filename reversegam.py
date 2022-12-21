@@ -6,6 +6,7 @@ class Reversegam:
         self.computer_score = 0
         self.player_score = 0
         self.directions = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+        self.corners = [[0, 7], [0, 0], [7, 0], [7, 7]]
 
     def fill_board(self):
         self.board = []
@@ -57,11 +58,11 @@ class Reversegam:
             try:
                 new_pos = (i[0] + line, i[1] + column)
                 if self.board[new_pos[0]][new_pos[1]] == self.player_side:
-                 try:
-                     if self.board[new_pos[0] + i[0]][new_pos[1] + i[1]] == self.computer_side:
-                         score += 1
-                 except:
-                     continue
+                    try:
+                        if self.board[new_pos[0] + i[0]][new_pos[1] + i[1]] == self.computer_side:
+                            score += 1
+                    except:
+                        continue
             except:
                 continue
         return score
@@ -83,10 +84,16 @@ class Reversegam:
         return self.board[line][column] == ' '
 
     def take_corner(self):
-        pass
+        for i in self.corners:
+            if ' ' == self.board[i[0]][i[1]]:
+                self.board[i[0]][i[1]] = self.computer_side
+                return None
 
     def decide(self):
-        pass
+        for i in self.corners:
+            if ' ' == self.board[i[0]][i[1]]:
+                return True
+        return False
 
     def is_end(self):
         for line in self.board:
@@ -104,7 +111,10 @@ while True:
     pos = list(map(int, input("make your move: ").split()))
     game.scoring(pos, 'X', 'O')
     game.draw_map()
-    game.check_every_move()
+    if game.decide():
+        game.take_corner()
+    else:
+        game.check_every_move()
     if game.is_end():
         game.draw_map()
         break
