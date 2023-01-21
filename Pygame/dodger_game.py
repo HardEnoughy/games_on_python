@@ -45,6 +45,10 @@ class DodgerGame():
 
         #scoring
         self.score = 0
+
+        #sounds
+        self.die_sound = pygame.mixer.Sound("sounds/gameover.wav")
+        self.music_playing = True
     
     def show_game_over(self):
         spacing = 50
@@ -107,7 +111,7 @@ class DodgerGame():
     def draw_baddie(self, baddie):
         self.main_surface.blit(self.baddies_stretch[self.baddies.index(baddie)], baddie)
     
-    def run_game(self):
+    def set_up_new_game(self):
         self.main_surface.fill(WHITE)
         self.baddies = []
         self.baddies_stretch = []
@@ -116,47 +120,79 @@ class DodgerGame():
         self.is_up = False
         self.is_down = False
         self.score = 0
+    
+    def set_up_music(self):
+        self.music_playing = True
         pygame.mixer.music.load("sounds/background.mid")
         pygame.mixer.music.play(-1, 0.0)
-        die_sound = pygame.mixer.Sound("sounds/gameover.wav")
-        music_playing = True
-
+        
+    def check_keyboard(self):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            #keydown events 
+            if event.type == KEYDOWN:
+                if event.key == K_LEFT:
+                    self.is_left = True
+                if event.key == K_RIGHT:
+                    self.is_right = True
+                if event.key == K_DOWN:
+                    self.is_down = True
+                if event.key == K_UP:
+                    self.is_up = True
+                if event.key == K_m:
+                    if self.music_playing:
+                        pygame.mixer.music.stop()
+                    else:
+                        pygame.mixer.music.play(-1, 0.0) 
+                    self.music_playing = not self.music_playing
+            
+            #keyup events
+            if event.type == KEYUP:
+                if event.key == K_LEFT:
+                    self.is_left = False 
+                if event.key == K_RIGHT:
+                    self.is_right = False 
+                if event.key == K_DOWN:
+                    self.is_down = False
+                if event.key == K_UP:
+                    self.is_up = False
+    
+    def move_player(self):
+        if self.is_up and self.player.top > 0:
+            self.player.top -= PLAYERSPEED
+        if self.is_right and self.player.right < WINDOWWIDTH:
+            self.player.right += PLAYERSPEED
+        if self.is_down and self.player.bottom < WINDOWHEIGHT:
+            self.player.top += PLAYERSPEED
+        if self.is_left and self.player.left > 0:
+            self.player.left -= PLAYERSPEED
+    
+    def check_baddie_position(self):
+        for baddie in self.baddies[:]:
+            if baddie.bottom >= WINDOWHEIGHT:
+                self.baddies.remove(baddie) 
+                # del self.baddies_stretch[self.baddies.index(baddie)]
+            else:
+                self.move_baddie(baddie)
+                self.draw_baddie(baddie)
+            
+            #checking collision
+            if self.player.colliderect(baddie):
+                return True
+        return False
+    
+    def run_game(self):
+        self.set_up_new_game()
+        self.set_up_music()
         pygame.display.update()
+
         is_game_over = False
         while True:
             #event checks
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-                
-                #keydown events 
-                if event.type == KEYDOWN:
-                    if event.key == K_LEFT:
-                        self.is_left = True
-                    if event.key == K_RIGHT:
-                        self.is_right = True
-                    if event.key == K_DOWN:
-                        self.is_down = True
-                    if event.key == K_UP:
-                        self.is_up = True
-                    if event.key == K_m:
-                        if music_playing:
-                            pygame.mixer.music.stop()
-                        else:
-                            pygame.mixer.music.play(-1, 0.0) 
-                        music_playing = not music_playing
-                
-                #keyup events
-                if event.type == KEYUP:
-                    if event.key == K_LEFT:
-                        self.is_left = False 
-                    if event.key == K_RIGHT:
-                        self.is_right = False 
-                    if event.key == K_DOWN:
-                        self.is_down = False
-                    if event.key == K_UP:
-                        self.is_up = False
+            self.check_keyboard()
             
             #adding baddies if there is not enough
             while len(self.baddies) < NEWENEMY:
@@ -166,32 +202,15 @@ class DodgerGame():
             self.main_surface.fill(WHITE)
 
             #moving player if needed
-            if self.is_up and self.player.top > 0:
-                self.player.top -= PLAYERSPEED
-            if self.is_right and self.player.right < WINDOWWIDTH:
-                self.player.right += PLAYERSPEED
-            if self.is_down and self.player.bottom < WINDOWHEIGHT:
-                self.player.top += PLAYERSPEED
-            if self.is_left and self.player.left > 0:
-                self.player.left -= PLAYERSPEED
+            self.move_player()
             
             #removing or moving baddies
-            for baddie in self.baddies[:]:
-                if baddie.bottom >= WINDOWHEIGHT:
-                    self.baddies.remove(baddie) 
-                    # del self.baddies_stretch[self.baddies.index(baddie)]
-                else:
-                    self.move_baddie(baddie)
-                    self.draw_baddie(baddie)
-                
-                #checking collision
-                if self.player.colliderect(baddie):
-                   is_game_over = True
+            is_game_over = self.check_baddie_position()
             
             if is_game_over:
                 pygame.mixer.music.stop()
-                if music_playing:
-                    die_sound.play()
+                if self.music_playing:
+                    self.die_sound.play()
                 break
                     
             #drawing player
