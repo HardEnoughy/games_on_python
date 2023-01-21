@@ -6,7 +6,7 @@ pygame.init()
 #constants
 PLAYERSPEED = 6
 WHITE = (255, 255, 255)
-NEWENEMY = 12
+NEWENEMY = 20
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 800
 PLAYERSIZE = 50
@@ -42,21 +42,35 @@ class DodgerGame():
         self.game_over_text = self.main_font.render("GAME OVER", False, WHITE, BLUE)
         self.font = pygame.font.SysFont(None, 30)
         self.after_game_text = self.font.render("Do you want to try again? Press space for again and esc for exit", False, WHITE, BLUE)
+
+        #scoring
+        self.score = 0
     
     def show_game_over(self):
+        spacing = 50
+        
+        #score text
+        score_text = self.font.render(f"Your score is {int(self.score)}", False, WHITE, BLUE)
+        score_text_rect = score_text.get_rect()
+        
         #game over text
         game_over_rect = self.game_over_text.get_rect()
         game_over_rect.centerx = self.main_surface.get_rect().centerx
         game_over_rect.centery = self.main_surface.get_rect().centery
 
+        #score text placement
+        score_text_rect.centerx = self.main_surface.get_rect().centerx
+        score_text_rect.centery = game_over_rect.centery + spacing
+
         #hint text
         after_game_rect = self.after_game_text.get_rect()
         after_game_rect.centerx = self.main_surface.get_rect().centerx
-        after_game_rect.centery = self.main_surface.get_rect().centery + 50
+        after_game_rect.centery = score_text_rect.centery + spacing
 
         self.main_surface.fill(BLUE)
 
         self.main_surface.blit(self.game_over_text, game_over_rect)
+        self.main_surface.blit(score_text, score_text_rect)
         self.main_surface.blit(self.after_game_text, after_game_rect)
 
         pygame.display.update()
@@ -87,7 +101,7 @@ class DodgerGame():
         self.baddies_stretch.append(pygame.transform.scale(self.baddie_image, (size, size)))
     
     def move_baddie(self, baddie):
-        speed = random.randint(1, 8)
+        speed = random.randint(1, 10)
         baddie.bottom += speed
     
     def draw_baddie(self, baddie):
@@ -101,6 +115,12 @@ class DodgerGame():
         self.is_right = False
         self.is_up = False
         self.is_down = False
+        self.score = 0
+        pygame.mixer.music.load("sounds/background.mid")
+        pygame.mixer.music.play(-1, 0.0)
+        die_sound = pygame.mixer.Sound("sounds/gameover.wav")
+        music_playing = True
+
         pygame.display.update()
         is_game_over = False
         while True:
@@ -120,6 +140,12 @@ class DodgerGame():
                         self.is_down = True
                     if event.key == K_UP:
                         self.is_up = True
+                    if event.key == K_m:
+                        if music_playing:
+                            pygame.mixer.music.stop()
+                        else:
+                            pygame.mixer.music.play(-1, 0.0) 
+                        music_playing = not music_playing
                 
                 #keyup events
                 if event.type == KEYUP:
@@ -160,13 +186,19 @@ class DodgerGame():
                 
                 #checking collision
                 if self.player.colliderect(baddie):
-                   is_game_over = True 
+                   is_game_over = True
             
             if is_game_over:
+                pygame.mixer.music.stop()
+                if music_playing:
+                    die_sound.play()
                 break
                     
             #drawing player
             self.main_surface.blit(self.player_image, self.player)
+
+            #scoring
+            self.score += 0.07
 
             #updating display
             pygame.display.update()
